@@ -17,6 +17,7 @@
       <h1>Overlay Sheet Picker</h1>
       <span class="file-label" id="fileLabel"></span>
       <label class="help-toggle"><input type="checkbox" id="showHelp"> Show help</label>
+      <button class="btn" id="aboutButton" aria-haspopup="dialog">About</button>
       <label class="btn primary" for="fileInput">Open sheet…</label>
       <input type="file" id="fileInput" accept=".vtf,.tga,.png,.jpg,.jpeg,.webp,.bmp,.gif" hidden>
     </header>
@@ -135,6 +136,31 @@
       </aside>
     </main>
   </div>
+
+  <dialog class="about" id="aboutDialog" aria-labelledby="aboutTitle">
+    <h2 id="aboutTitle">Overlay Sheet Picker</h2>
+    <p>
+      A tool for Source engine mappers. Open an overlay sheet, pick a sticker, and get the
+      <code>StartU</code>, <code>EndU</code>, <code>StartV</code> and <code>EndV</code> values for Hammer's
+      <code>info_overlay</code>. Files are decoded in your browser and never uploaded.
+    </p>
+
+    <h3>Credits</h3>
+    <ul>
+      <li><a href="https://github.com/Midlou" target="_blank" rel="noopener">Midlou</a>: author</li>
+      <li><a href="https://github.com/ALIEN31ITA" target="_blank" rel="noopener">ALIEN31ITA</a>: contributor</li>
+    </ul>
+
+    <p class="about-links">
+      <a href="https://github.com/Midlou/Source-Engine-Overlay-Sheet-Picker" target="_blank" rel="noopener">Source code on GitHub</a>
+      · Released under the
+      <a href="https://github.com/Midlou/Source-Engine-Overlay-Sheet-Picker/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+    </p>
+
+    <form method="dialog">
+      <button class="btn primary" id="aboutClose">Close</button>
+    </form>
+  </dialog>
 
   <div class="toast" id="toast" role="status" hidden></div>
 

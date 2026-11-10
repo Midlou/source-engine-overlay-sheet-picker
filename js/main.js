@@ -111,6 +111,19 @@ showHelpCheckbox.addEventListener('change', () => {
   }
 });
 
+/* ---------- About dialog ---------- */
+
+const aboutDialog = $('aboutDialog');
+$('aboutButton').addEventListener('click', () => aboutDialog.showModal());
+// Clicking the dimmed backdrop (outside the dialog box) closes it too.
+aboutDialog.addEventListener('click', (event) => {
+  const box = aboutDialog.getBoundingClientRect();
+  const outside =
+    event.clientX < box.left || event.clientX > box.right ||
+    event.clientY < box.top || event.clientY > box.bottom;
+  if (outside) aboutDialog.close();
+});
+
 /* ---------- Zoom buttons ---------- */
 
 $('zoomIn').addEventListener('click', () => viewer.stepZoom(1));

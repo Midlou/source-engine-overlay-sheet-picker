@@ -177,6 +177,11 @@ The code has no dependencies. `actions.js` changes the state and calls `notifyCh
 
 Any current version of Chrome, Edge, Firefox or Safari. Copy buttons need a secure page (`https://` or `localhost`). On a plain `http://` address the text is shown selected so you can press Ctrl+C instead.
 
+## Credits
+
+- [Midlou](https://github.com/Midlou): author
+- [ALIEN31ITA](https://github.com/ALIEN31ITA): contributor
+
 ## License
 
 [MIT](LICENSE) © 2026 Midlou

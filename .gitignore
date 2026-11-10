@@ -1,0 +1,6 @@
+# Local editor and assistant settings
+.claude/
+
+# OS files
+Thumbs.db
+.DS_Store

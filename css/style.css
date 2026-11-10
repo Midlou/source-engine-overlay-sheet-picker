@@ -1,0 +1,516 @@
+/*
+ * Overlay Sheet Picker styles.
+ *
+ * Layout: a workbench. The sheet viewport fills the left, a settings panel
+ * sits on the right, and the two stack on narrow screens.
+ *
+ * Every color is a token on :root. Dark mode redefines the tokens, either
+ * from the OS setting or from an explicit data-theme="dark" on <html>.
+ */
+
+/* ---------- Tokens ---------- */
+
+:root {
+  --bg: #eceee9;
+  --panel: #f7f8f5;
+  --ink: #1c2220;
+  --muted: #5b6560;
+  --line: #d0d6cf;
+  --field: #ffffff;
+  --accent: #c9721a;
+  --accent-ink: #ffffff;
+  --selection: #ffad2e;
+  --checker-a: #d5d9d3;
+  --checker-b: #e6e9e4;
+  --danger: #a93b2a;
+
+  --font-ui: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151819;
+    --panel: #1d2122;
+    --ink: #e2e6e3;
+    --muted: #97a19c;
+    --line: #30373a;
+    --field: #111415;
+    --accent: #ef9d3c;
+    --accent-ink: #1b1104;
+    --selection: #ffc25a;
+    --checker-a: #222627;
+    --checker-b: #2a2f30;
+    --danger: #e47b66;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #151819;
+  --panel: #1d2122;
+  --ink: #e2e6e3;
+  --muted: #97a19c;
+  --line: #30373a;
+  --field: #111415;
+  --accent: #ef9d3c;
+  --accent-ink: #1b1104;
+  --selection: #ffc25a;
+  --checker-a: #222627;
+  --checker-b: #2a2f30;
+  --danger: #e47b66;
+  color-scheme: dark;
+}
+
+/* ---------- Base ---------- */
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+/* ---------- Top bar ---------- */
+
+.top-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.top-bar h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.file-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.help-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.help-toggle input {
+  accent-color: var(--accent);
+}
+
+/* Explanation texts are hidden unless "Show help" is on. */
+body:not(.show-help) .help {
+  display: none;
+}
+
+/* ---------- Buttons and inputs ---------- */
+
+.btn {
+  font: 600 13px var(--font-ui);
+  border: 1px solid var(--line);
+  background: var(--field);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.btn.small {
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+.btn.danger {
+  color: var(--danger);
+}
+
+.btn:focus-visible,
+input:focus-visible,
+.segmented label:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.field {
+  display: grid;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.field input[type="number"],
+.field input[type="text"],
+.text-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 5px 7px;
+  font: 13px var(--font-mono);
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+
+.grow {
+  flex: 1;
+}
+
+/* Segmented control built from radio buttons */
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented label {
+  padding: 5px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  background: var(--field);
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented label:has(input:checked) {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* The 2×2 face orientation picker */
+.segmented.orientation {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--line);
+}
+
+.segmented.orientation label {
+  padding: 6px 8px;
+  text-align: center;
+  font: 600 12px var(--font-mono);
+}
+
+/* ---------- Workspace ---------- */
+
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  min-height: 0;
+}
+
+.viewport {
+  position: relative;
+  overflow: auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.stage {
+  display: grid;
+  place-items: center;
+  min-width: 100%;
+  min-height: 100%;
+  width: max-content;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+#sheetCanvas {
+  display: block;
+  image-rendering: pixelated;
+  cursor: crosshair;
+  touch-action: none;
+  /* Checkerboard behind transparent pixels */
+  background:
+    conic-gradient(var(--checker-a) 25%, var(--checker-b) 0 50%, var(--checker-a) 0 75%, var(--checker-b) 0)
+    0 0 / 16px 16px;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.zoom-bar {
+  position: sticky;
+  left: 12px;
+  bottom: 12px;
+  width: max-content;
+  margin-top: -48px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+.zoom-bar span {
+  min-width: 52px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.drop-hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 18px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  border: 2px dashed var(--accent);
+  pointer-events: none;
+}
+
+/* ---------- Settings panel ---------- */
+
+.panel {
+  overflow: auto;
+  padding-block: 4px 24px;
+  padding-left: 16px;
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.panel section {
+  display: grid;
+  gap: 10px;
+  padding-block: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel section:last-child {
+  border-bottom: 0;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.fields-3,
+.fields-4 {
+  display: grid;
+  gap: 8px;
+}
+
+.fields-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.fields-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* UV results */
+.uv-table {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.uv-key {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.uv-key b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.uv-value {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.snippet {
+  margin: 0;
+  padding: 8px 10px;
+  overflow-x: auto;
+  font: 12px/1.5 var(--font-mono);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  user-select: all;
+}
+
+#clipboardFallbackText {
+  width: 100%;
+  height: 120px;
+  box-sizing: border-box;
+  font: 12px var(--font-mono);
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+}
+
+/* Saved regions */
+.region-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.region-list li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 6px;
+  align-items: center;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--field);
+}
+
+.region-list li.selected {
+  border-color: var(--selection);
+  box-shadow: inset 3px 0 0 var(--selection);
+}
+
+.region-list li.empty {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.region-uv {
+  grid-column: 1 / -1;
+  font: 11px var(--font-mono);
+  color: var(--muted);
+}
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--bg);
+  background: var(--ink);
+}
+
+.toast.error {
+  background: var(--danger);
+}
+
+.noscript {
+  padding: 16px;
+}
+
+/* ---------- Narrow screens ---------- */
+
+@media (max-width: 820px) {
+  .app {
+    height: auto;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .viewport {
+    height: 60vh;
+  }
+
+  .panel {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn {
+    transition: border-color 0.12s;
+  }
+}

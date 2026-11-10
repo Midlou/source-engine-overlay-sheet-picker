@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Overlay Sheet Picker</title>
+  <meta name="description" content="Pick a sticker on a Source engine overlay sheet and get the StartU/EndU/StartV/EndV values for Hammer's info_overlay.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="top-bar">
+      <h1>Overlay Sheet Picker</h1>
+      <span class="file-label" id="fileLabel"></span>
+      <label class="help-toggle"><input type="checkbox" id="showHelp"> Show help</label>
+      <label class="btn primary" for="fileInput">Open sheet…</label>
+      <input type="file" id="fileInput" accept=".vtf,.tga,.png,.jpg,.jpeg,.webp,.bmp,.gif" hidden>
+    </header>
+
+    <main class="workspace">
+      <!-- Left: the sheet itself -->
+      <section class="viewport" id="viewport" aria-label="Sheet">
+        <div class="stage">
+          <canvas id="sheetCanvas" tabindex="0" aria-label="Overlay sheet. Click or drag to select a region."></canvas>
+        </div>
+        <div class="zoom-bar">
+          <button class="btn small" id="zoomOut" aria-label="Zoom out">−</button>
+          <span id="zoomLabel">100%</span>
+          <button class="btn small" id="zoomIn" aria-label="Zoom in">+</button>
+          <button class="btn small" id="zoomFit">Fit</button>
+          <button class="btn small" id="zoomActual">1:1</button>
+        </div>
+        <div class="drop-hint" id="dropHint" hidden>Drop a .vtf, .tga or .png to open it</div>
+      </section>
+
+      <!-- Right: settings and results -->
+      <aside class="panel">
+        <section>
+          <h2>Sheet layout</h2>
+          <div class="segmented" role="radiogroup" aria-label="Selection mode">
+            <label><input type="radio" name="mode" id="modeGrid" value="grid" checked>Grid</label>
+            <label><input type="radio" name="mode" id="modeFree" value="free">Free</label>
+          </div>
+          <div class="fields-3">
+            <label class="field">Columns<input type="number" id="gridColumns" min="1" max="64" value="4"></label>
+            <label class="field">Rows<input type="number" id="gridRows" min="1" max="64" value="4"></label>
+            <label class="field">Inset (px)<input type="number" id="insetInput" min="0" max="16" step="0.5" value="0.5"></label>
+          </div>
+          <p class="hint help" id="modeHint"></p>
+          <label class="field">Material path (for the keyvalue snippet)
+            <input type="text" id="materialInput" placeholder="overlays/my_sheet" spellcheck="false">
+          </label>
+        </section>
+
+        <section>
+          <h2>Auto-detect stickers</h2>
+          <p class="hint help">Finds each separate shape on the sheet and saves its bounding box as a region. Works with sheets of any layout.</p>
+          <div class="segmented" role="radiogroup" aria-label="Sheet background">
+            <label><input type="radio" name="background" id="backgroundAlpha" value="alpha" checked>Transparent background</label>
+            <label><input type="radio" name="background" id="backgroundSolid" value="solid">Solid color</label>
+          </div>
+          <div class="fields-4">
+            <label class="field">Threshold<input type="number" id="detectThreshold" min="0" max="254" value="16"></label>
+            <label class="field">Merge gap<input type="number" id="detectMergeGap" min="0" max="256" value="0"></label>
+            <label class="field">Min size<input type="number" id="detectMinSize" min="1" max="4096" value="8"></label>
+            <label class="field">Padding<input type="number" id="detectPadding" min="0" max="32" value="0"></label>
+          </div>
+          <p class="hint help">
+            <b>Threshold:</b> the alpha (or the difference from the corner color) a pixel needs to count as part of a sticker.
+            <b>Merge gap:</b> shapes this many pixels apart or closer become one region. Raise it for stickers made of loose parts, like separate letters.
+            <b>Min size</b> ignores specks smaller than this. <b>Padding</b> grows each box outward.
+          </p>
+          <div class="row">
+            <button class="btn primary" id="detectButton">Detect regions</button>
+            <button class="btn" id="undoDetectButton" hidden>Undo detect</button>
+          </div>
+          <p class="hint" id="detectInfo" hidden></p>
+        </section>
+
+        <section>
+          <h2>Overlay UVs</h2>
+          <div class="field">Hammer's default values on this face
+            <div class="segmented orientation" role="radiogroup" aria-label="Hammer's default U and V values on this face">
+              <label><input type="radio" name="orientation" id="orientation00" value="00" checked>U 0→1 · V 0→1</label>
+              <label><input type="radio" name="orientation" id="orientation10" value="10">U 1→0 · V 0→1</label>
+              <label><input type="radio" name="orientation" id="orientation01" value="01">U 0→1 · V 1→0</label>
+              <label><input type="radio" name="orientation" id="orientation11" value="11">U 1→0 · V 1→0</label>
+            </div>
+          </div>
+          <p class="hint help">Hammer sets an overlay's U Start/End and V Start/End to 0 and 1 in an order that depends on which way the face points. Place the overlay first, read its U Start and V Start, and pick the matching option. The crop then keeps that direction, so the sticker isn't mirrored.</p>
+
+          <div class="uv-table">
+            <span class="uv-key"><b>U Start</b>StartU</span><span class="uv-value" id="valueStartU">–</span><button class="btn small" data-copy="StartU">Copy</button>
+            <span class="uv-key"><b>U End</b>EndU</span><span class="uv-value" id="valueEndU">–</span><button class="btn small" data-copy="EndU">Copy</button>
+            <span class="uv-key"><b>V Start</b>StartV</span><span class="uv-value" id="valueStartV">–</span><button class="btn small" data-copy="StartV">Copy</button>
+            <span class="uv-key"><b>V End</b>EndV</span><span class="uv-value" id="valueEndV">–</span><button class="btn small" data-copy="EndV">Copy</button>
+          </div>
+          <p class="hint" id="sizeInfo">No selection</p>
+
+          <div class="fields-4">
+            <label class="field">X<input type="number" id="selectionX" min="0" step="1"></label>
+            <label class="field">Y<input type="number" id="selectionY" min="0" step="1"></label>
+            <label class="field">W<input type="number" id="selectionW" min="1" step="1"></label>
+            <label class="field">H<input type="number" id="selectionH" min="1" step="1"></label>
+          </div>
+
+          <pre class="snippet" id="snippet"></pre>
+          <div class="row"><button class="btn" id="copySnippetButton">Copy keyvalues</button></div>
+          <div id="clipboardFallback" hidden>
+            <p class="hint">The clipboard is blocked here. The text is selected below, so press Ctrl+C.</p>
+            <textarea id="clipboardFallbackText" readonly></textarea>
+          </div>
+        </section>
+
+        <section>
+          <h2>Saved regions</h2>
+          <div class="row">
+            <input class="text-input grow" id="regionNameInput" type="text" placeholder="Name, e.g. exit_sign" spellcheck="false">
+            <button class="btn" id="saveRegionButton">Save</button>
+          </div>
+          <ul class="region-list" id="regionList"></ul>
+          <p class="hint help">In Free mode, Shift+click regions on the sheet to select several, then merge them into one. Delete removes the selected region.</p>
+          <div class="row"><button class="btn" id="mergeButton" hidden>Merge selected</button></div>
+          <p class="hint help">Regions and layout are remembered per file name in this browser. Copy the JSON to keep them anywhere else.</p>
+          <div class="row">
+            <button class="btn small" id="copyJsonButton">Copy JSON</button>
+            <label class="btn small" for="jsonInput">Load JSON…</label>
+            <input type="file" id="jsonInput" accept=".json,application/json" hidden>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <noscript><p class="noscript">Overlay Sheet Picker needs JavaScript.</p></noscript>
+</body>
+</html>

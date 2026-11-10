@@ -1,5 +1,7 @@
 # Overlay Sheet Picker
 
+**Use it online: <https://midlou.com/source-engine-overlay-sheet-picker/>**
+
 A browser tool for Source engine mappers. Open an overlay **sheet** (one texture holding many stickers), click the sticker you want, and get the `StartU`, `EndU`, `StartV` and `EndV` values to type into Hammer's `info_overlay`. No more cropping by trial and error.
 
 It runs entirely in the browser. Files are decoded locally and never uploaded.
